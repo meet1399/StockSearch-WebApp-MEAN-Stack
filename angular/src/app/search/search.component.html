@@ -1,0 +1,174 @@
+<app-searchbar (notify)="onNotify()"></app-searchbar>
+
+<ngb-alert id="invalid-ticker-alert" *ngIf="invalidSymbolFlag" type="alert-danger" class="alert alert-danger" [dismissible]="false">
+    No data found. Please enter a valid ticker
+</ngb-alert>
+
+<ngb-alert id="no-input-alert" *ngIf="noInputFlag" type="alert-danger" class="alert alert-danger" (closed)="closeNoInputAlert()">
+    Please enter a valid ticker
+</ngb-alert>
+
+<ngb-alert *ngIf="watchlistAddFlag" type="alert-success" class="alert alert-success" (closed)="watchlistAddFlag = false">
+    {{ ticker }} added to Watchlist.
+</ngb-alert>
+
+<ngb-alert *ngIf="watchlistRemoveFlag" type="alert-danger" class="alert alert-danger" (closed)="watchlistRemoveFlag = false">
+    {{ ticker }} removed from Watchlist.
+</ngb-alert>
+
+<ngb-alert *ngIf="buyAlertFlag" type="alert-success" class="alert alert-success" (closed)="buyAlertFlag = false">
+    {{ ticker }} bought successfully.
+</ngb-alert>
+
+<ngb-alert *ngIf="sellAlertFlag" type="alert-danger" class="alert alert-danger" (closed)="sellAlertFlag = false">
+    {{ ticker }} sold successfully.
+</ngb-alert>
+
+<mat-spinner id="load-spinner" *ngIf="loadingFlag"></mat-spinner>
+
+<div #reservedElement id="reserved-section"></div>
+
+<div #displayElement class="search-display-info" id="search-display-info" *ngIf="validSymbolFlag">
+    <div class="row search-info-top">
+        <div class="col search-top-left">
+            <div class="text-large">{{ ticker }} 
+                <i *ngIf="!watchlistActivateFlag" (click)="setWatchlist()" class="bi bi-star text-mid"></i>
+                <i *ngIf="watchlistActivateFlag" (click)="unsetWatchlist()" class="bi bi-star-fill text-mid" style="color: gold;"></i>
+            </div>
+            <div class="text-mid text-secondary">{{ name }}</div>
+            <div class="text-small">{{ exchange }}</div>
+            <div>
+                <button type="button" class="btn btn-success" (click)="startBuyTransaction()">Buy</button>&nbsp;
+                <button *ngIf="stockHoldingFlag" type="button" class="btn btn-danger" (click)="startSellTransaction()">Sell</button>
+            </div>
+        </div>
+        <div class="col-1 search-top-mid" id="logo-div">
+            <img #logo id="logo-img" alt="" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="display: block; margin: auto;">
+        </div>
+        <div class="col search-top-right">
+            <div #searchPrice>
+                <div class="text-large">{{ c }}</div>
+                <div class="text-mid">
+                    <i *ngIf="!priceUp" class="bi bi-caret-down-fill"></i>
+                    <i *ngIf="priceUp" class="bi bi-caret-up-fill"></i>
+                    {{ d }}({{ dp }}%)
+                </div>
+            </div>
+            <div class="text-small">
+                {{ formatedQueryTime }}
+            </div>
+        </div>
+    </div>
+    <div #marketStatus class="text-small font-weight-bold" id="market-status"></div>
+    <div class="search-info-details">
+        <mat-tab-group mat-stretch-tabs>
+            <mat-tab label="Summary">
+                <div class="row summary-content">
+                    <div class="col-md summary-left text-mob">
+                        <div class="summary-price" style="padding: 10px; width: 60%; margin: auto;">
+                            <table>
+                                <tr>
+                                    <th>High Price:</th>
+                                    <td>{{ h }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Low Price:</th>
+                                    <td>{{ l }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Open Price:</th>
+                                    <td>{{ o }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Prev. Close:</th>
+                                    <td>{{ pc }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="summary-about" style="padding: 10px; text-align: center;">
+                            <p><strong><u>About the company</u></strong></p>
+                            <div style="margin-bottom: 4px;"><strong>IPO Start Date: </strong>{{ ipo }}</div>
+                            <div style="margin-bottom: 4px;"><strong>Industry: </strong>{{ industry }}</div>
+                            <div style="margin-bottom: 4px;"><strong>Webpage: </strong><a #weblink href="" target="_blank">{{ weburl }}</a></div>
+                            <div style="margin-bottom: 4px;"><strong>Company peers: </strong></div>
+                            <div #peerlist style="margin-bottom: 4px;"></div>
+                        </div>
+                    </div>
+                    <div class="col-md summary-chart">
+                        <highcharts-chart class="search-highchart insights-highchart" id="summary-highchart" 
+                            [Highcharts]="highcharts"
+                            [options]="summaryChartOptions"
+                        >
+                        </highcharts-chart>
+                    </div>
+                </div>
+            </mat-tab>
+            <mat-tab label="Top News" >
+                <div #newslist class="row mt-3" style="margin: auto; margin-bottom: 2px;">
+                    <div class="col-md mt-3" hidden>
+                        <mat-card>
+                            hello
+                        </mat-card>
+                    </div>
+                    <div class="col-md mt-3" hidden>
+                        <mat-card>
+                            hello
+                        </mat-card>
+                    </div>
+                    <div class="w-100"></div>
+                </div>
+            </mat-tab>
+            <mat-tab label="Charts">
+                <div *ngIf="historyChartReadyFlag">
+                    <app-chart></app-chart>
+                </div>
+            </mat-tab>
+            <mat-tab label="Insights">
+                <div class="insignts-sentiments">
+                    <div class="text-mid text-center mt-2 mb-2"><strong>Insider Sentiments</strong></div>
+                    <table class="table text-center text-small" style="background-color: white;">
+                        <tbody>
+                            <tr>
+                                <td><strong>{{ insiderSymbol }}</strong></td>
+                                <td><strong>MSPR</strong></td>
+                                <td><strong>Change</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total</strong></td>
+                                <td>{{ msprTotal }}</td>
+                                <td>{{ changeTotal }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Positive</strong></td>
+                                <td>{{ msprPositive }}</td>
+                                <td>{{ changePositive }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Negative</strong></td>
+                                <td>{{ msprNegative }}</td>
+                                <td>{{ changeNegative }}</td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+                <div class="row insights-lower">
+                    <div class="col-md insignts-lower-left">
+                        <highcharts-chart class="search-highchart insights-highchart" id="insights-chart"
+                            [Highcharts]="highcharts"
+                            [options]="recommendationChartOptions"
+                        >
+                        </highcharts-chart>
+                    </div>
+                    <div class="col-md insignts-lower-right">
+                        <highcharts-chart class="search-highchart insights-highchart"
+                            [Highcharts]="highcharts"
+                            [options]="earningsChartOptions"
+                        >
+                        </highcharts-chart>
+                    </div>
+                </div>
+            </mat-tab>
+          </mat-tab-group>
+    </div>
+</div>
